@@ -68,6 +68,20 @@ async def startup():
     redis = Redis.from_url("redis://localhost", encoding="utf-8", decode_responses=True)
     await FastAPILimiter.init(redis)
 
+@app.exception_handler(Exception)
+async def internal_exception_handler(request: Request, exc: Exception):
+    logger.error(f"Unhandled exception at {request.method} {request.url.path}")
+    logger.error("".join(traceback.format_exception(type(exc), exc, exc.__traceback__)))
+    return JSONResponse(
+        status_code=500,
+        content={"detail": "Internal Server Error"},
+    )
+
+@app.get("/health")
+def health_check():
+    logger.info("Health check pinged")
+    return {"status": "ok"}
+
 @app.post("/register", response_model=Token,dependencies=[Depends(RateLimiter(times=3, seconds=60))])
 def register(user: UserRegisterWithDevice, db: Session = Depends(get_db)):
     # Check if email already exists
