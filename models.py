@@ -17,7 +17,7 @@ class Device(Base):
     id = Column(Integer, primary_key=True, index=True)
     device_id = Column(String, unique=True, index=True)
     device_name = Column(String)
-    user_id = Column(Integer, ForeignKey("users.id"))
+    user_id = Column(Integer, ForeignKey("users.id"), index=True)
 
     owner = relationship("User", back_populates="devices")
 
@@ -44,7 +44,7 @@ class RefreshToken(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"))
     token = Column(String, unique=True, index=True)
-    expiry = Column(DateTime)
+    expiry = Column(DateTime, index=True)
     device_id = Column(String, nullable=False)
 
     user = relationship("User")
