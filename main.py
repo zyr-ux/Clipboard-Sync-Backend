@@ -148,7 +148,7 @@ def login(user: UserLoginWithDevice, db: Session = Depends(get_db)):
     
     # Cleaup Expired Refresh Tokens
     cleanup_expired_refresh_tokens(db)
-    logger.info("Logger initialized")
+    #logger.info("Logger initialized")
 
     # Check if device is registered for this user
     device = db.query(Device).filter_by(device_id=user.device_id, user_id=db_user.id).first()
