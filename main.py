@@ -27,6 +27,7 @@ from models import BlacklistedToken
 from auth import SECRET_KEY, ALGORITHM
 from fastapi.security import OAuth2PasswordBearer
 from connection_manager import ConnectionManager
+from utils import cleanup_expired_refresh_tokens
 
 ALLOW_AUTO_DEVICE_REGISTRATION = True  #Turn this off in production!
 
@@ -114,6 +115,9 @@ def login(user: UserLoginWithDevice, db: Session = Depends(get_db)):
     if not db_user or not verify_password(user.password, db_user.hashed_password):
         raise HTTPException(status_code=401, detail="Invalid credentials")
     
+    # Cleaup Expired Refresh Tokens
+    cleanup_expired_refresh_tokens(db)
+
     # Check if device is registered for this user
     device = db.query(Device).filter_by(device_id=user.device_id, user_id=db_user.id).first()
     if not device:
