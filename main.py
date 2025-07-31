@@ -15,7 +15,7 @@ from schemas import ClipboardOutList
 from datetime import timedelta, datetime
 from secrets import token_urlsafe
 from models import RefreshToken
-from fastapi import Body
+from fastapi import Body, Request
 from fastapi import WebSocket, WebSocketDisconnect, HTTPException
 from auth import get_user_from_token_ws
 from collections import defaultdict
