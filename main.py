@@ -65,7 +65,7 @@ def cleanup_old_clipboard_entries(user_id: int, db: Session):
 
 @app.on_event("startup")
 async def startup():
-    redis = await aioredis.from_url("redis://localhost", encoding="utf-8", decode_responses=True)
+    redis = Redis.from_url("redis://localhost", encoding="utf-8", decode_responses=True)
     await FastAPILimiter.init(redis)
 
 @app.post("/register", response_model=Token,dependencies=[Depends(RateLimiter(times=3, seconds=60))])
