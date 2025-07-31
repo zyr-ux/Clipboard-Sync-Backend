@@ -97,4 +97,3 @@ def get_user_from_token_ws(token: str):
 
     except JWTError:
         return None
-

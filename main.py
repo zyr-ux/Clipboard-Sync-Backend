@@ -26,6 +26,7 @@ from Crypto.Random import get_random_bytes
 from models import BlacklistedToken
 from auth import SECRET_KEY, ALGORITHM
 from fastapi.security import OAuth2PasswordBearer
+from connection_manager import ConnectionManager
 
 ALLOW_AUTO_DEVICE_REGISTRATION = True  #Turn this off in production!
 
@@ -39,6 +40,8 @@ REFRESH_TOKEN_EXPIRE_DAYS = 30
 
 Base.metadata.create_all(bind=engine)
 app = FastAPI()
+
+manager = ConnectionManager()
 
 # Dependency to get DB session
 def get_db():
@@ -387,14 +390,15 @@ async def websocket_clipboard(websocket: WebSocket, token: str):
     # Validate user + device
     user = get_user_from_token_ws(token)
     if not user:
-        await websocket.close(code=1008)  # Policy violation
+        await websocket.close(code=1008)
         return
 
-    # Extract exp claim from token for expiration tracking
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         exp = payload.get("exp")
-        if not exp:
+        device_id = payload.get("device_id")
+
+        if not exp or not device_id:
             await websocket.close(code=1008)
             return
     except JWTError:
@@ -402,13 +406,12 @@ async def websocket_clipboard(websocket: WebSocket, token: str):
         return
 
     await websocket.accept()
-    active_connections[user.id].append(websocket)
-
+    manager.connect(user.id, device_id, websocket)
     db = SessionLocal()
 
     try:
         while True:
-            # Token expiry check
+            # Expiry check
             if datetime.utcnow().timestamp() > exp:
                 await websocket.send_json({"type": "error", "message": "Token expired"})
                 await websocket.close(code=4001)
@@ -435,7 +438,7 @@ async def websocket_clipboard(websocket: WebSocket, token: str):
             if not text:
                 continue
 
-            # Store encrypted clipboard data
+            # Store encrypted clipboard
             key_entry = db.query(EncryptionKey).filter_by(user_id=user.id).first()
             if not key_entry:
                 key_entry = EncryptionKey(user_id=user.id, key=get_random_bytes(32))
@@ -453,19 +456,21 @@ async def websocket_clipboard(websocket: WebSocket, token: str):
             db.add(new_entry)
             db.commit()
 
-            # Broadcast to all other devices
-            for conn in active_connections[user.id]:
-                if conn != websocket:
-                    await conn.send_json({
-                        "text": text,
-                        "timestamp": new_entry.timestamp.isoformat()
-                    })
+            await manager.broadcast_to_user(
+                user_id=user.id,
+                message={
+                    "text": text,
+                    "timestamp": new_entry.timestamp.isoformat()
+                },
+                exclude_device=device_id
+            )
 
     except WebSocketDisconnect:
         pass
     finally:
-        active_connections[user.id].remove(websocket)
+        manager.disconnect(user.id, device_id)
         db.close()
+
 
 @app.get("/sessions", response_model=List[SessionInfo])
 def get_active_sessions(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
@@ -485,4 +490,3 @@ def revoke_session(device_id: str, current_user: User = Depends(get_current_user
     if deleted:
         return {"message": "Session revoked"}
     raise HTTPException(status_code=404, detail="Session not found")
-
