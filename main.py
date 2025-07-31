@@ -31,6 +31,7 @@ from fastapi_limiter.depends import RateLimiter
 from redis.asyncio import Redis
 from connection_manager import ConnectionManager
 from utils import cleanup_expired_refresh_tokens
+from logging_config import logger
 
 ALLOW_AUTO_DEVICE_REGISTRATION = True  #Turn this off in production!
 
@@ -147,6 +148,7 @@ def login(user: UserLoginWithDevice, db: Session = Depends(get_db)):
     
     # Cleaup Expired Refresh Tokens
     cleanup_expired_refresh_tokens(db)
+    logger.info("Logger initialized")
 
     # Check if device is registered for this user
     device = db.query(Device).filter_by(device_id=user.device_id, user_id=db_user.id).first()
