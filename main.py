@@ -26,6 +26,9 @@ from Crypto.Random import get_random_bytes
 from models import BlacklistedToken
 from auth import SECRET_KEY, ALGORITHM
 from fastapi.security import OAuth2PasswordBearer
+from fastapi_limiter import FastAPILimiter
+from fastapi_limiter.depends import RateLimiter
+import aioredis
 from connection_manager import ConnectionManager
 from utils import cleanup_expired_refresh_tokens
 
@@ -60,7 +63,12 @@ def cleanup_old_clipboard_entries(user_id: int, db: Session):
     ).delete()
     db.commit()
 
-@app.post("/register", response_model=Token)
+@app.on_event("startup")
+async def startup():
+    redis = await aioredis.from_url("redis://localhost", encoding="utf-8", decode_responses=True)
+    await FastAPILimiter.init(redis)
+
+@app.post("/register", response_model=Token,dependencies=[Depends(RateLimiter(times=3, seconds=60))])
 def register(user: UserRegisterWithDevice, db: Session = Depends(get_db)):
     # Check if email already exists
     if db.query(User).filter(User.email == user.email).first():
@@ -109,7 +117,7 @@ def register(user: UserRegisterWithDevice, db: Session = Depends(get_db)):
     }
 
 # Login route
-@app.post("/login", response_model=Token)
+@app.post("/login", response_model=Token,dependencies=[Depends(RateLimiter(times=5, seconds=60))])
 def login(user: UserLoginWithDevice, db: Session = Depends(get_db)):
     db_user = db.query(User).filter(User.email == user.email).first()
     if not db_user or not verify_password(user.password, db_user.hashed_password):
@@ -300,7 +308,7 @@ def logout(
     return {"message": "Logged out successfully"}
 
 
-@app.post("/refresh", response_model=Token)
+@app.post("/refresh", response_model=Token,dependencies=[Depends(RateLimiter(times=10, seconds=60))])
 def refresh_token(
     refresh_token: str = Body(...),
     db: Session = Depends(get_db)
