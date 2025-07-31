@@ -28,7 +28,7 @@ from auth import SECRET_KEY, ALGORITHM
 from fastapi.security import OAuth2PasswordBearer
 from fastapi_limiter import FastAPILimiter
 from fastapi_limiter.depends import RateLimiter
-import aioredis
+from redis.asyncio import Redis
 from connection_manager import ConnectionManager
 from utils import cleanup_expired_refresh_tokens
 
