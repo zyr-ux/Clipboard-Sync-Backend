@@ -77,6 +77,14 @@ async def internal_exception_handler(request: Request, exc: Exception):
         content={"detail": "Internal Server Error"},
     )
 
+@app.exception_handler(HTTPException)
+async def http_exception_handler(request: Request, exc: HTTPException):
+    logger.warning(f"HTTPException: {exc.status_code} - {exc.detail} at {request.method} {request.url.path}")
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"detail": exc.detail},
+    )
+
 @app.get("/health")
 def health_check():
     logger.info("Health check pinged")
