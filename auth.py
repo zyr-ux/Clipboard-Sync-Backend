@@ -1,15 +1,10 @@
 from datetime import datetime, timedelta
-from jose import JWTError, jwt
-from passlib.context import CryptContext
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, status, WebSocket
+from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 from sqlalchemy.orm import Session
 from database import SessionLocal
-from fastapi.security import OAuth2PasswordBearer
-from fastapi import WebSocket
-from jose import JWTError, jwt
 from models import User, BlacklistedToken, Device
-from database import SessionLocal
 from utils import cleanup_expired_blacklisted_tokens
 
 # Secret key (change this in production!)

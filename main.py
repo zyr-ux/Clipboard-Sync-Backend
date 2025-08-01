@@ -1,34 +1,21 @@
-from fastapi import FastAPI, Depends, HTTPException, status
-from sqlalchemy.orm import Session
-from database import SessionLocal, engine, Base
-from models import User
-from schemas import UserCreate, UserLogin, Token, UserRegisterWithDevice, UserLoginWithDevice, SessionInfo
-from auth import hash_password, verify_password, create_access_token
-from schemas import DeviceRegister, DeviceOut
-from auth import get_current_user
-from models import Device
-from typing import List
-from crypto_utils import encrypt_clipboard, decrypt_clipboard, encrypt_token, decrypt_token
-from models import Clipboard, EncryptionKey
-from schemas import ClipboardIn, ClipboardOut
-from schemas import ClipboardOutList
-from datetime import timedelta, datetime
-from secrets import token_urlsafe
-from models import RefreshToken
-from fastapi import Body, Request
-from fastapi import WebSocket, WebSocketDisconnect, HTTPException
-from auth import get_user_from_token_ws
-from collections import defaultdict
-from jose import JWTError, jwt
 import asyncio
-from typing import Dict, List
-from Crypto.Random import get_random_bytes
-from models import BlacklistedToken
-from auth import SECRET_KEY, ALGORITHM
+from datetime import datetime, timedelta
+from secrets import token_urlsafe
+from collections import defaultdict
+from typing import List
+from fastapi import FastAPI, Depends, HTTPException, Body, Request, WebSocket, WebSocketDisconnect
 from fastapi.security import OAuth2PasswordBearer
 from fastapi_limiter import FastAPILimiter
 from fastapi_limiter.depends import RateLimiter
+from sqlalchemy.orm import Session
 from redis.asyncio import Redis
+from Crypto.Random import get_random_bytes
+from jose import JWTError, jwt
+from database import SessionLocal, engine, Base
+from models import User, Device, Clipboard, EncryptionKey, RefreshToken, BlacklistedToken
+from schemas import Token, UserRegisterWithDevice, UserLoginWithDevice, DeviceRegister, DeviceOut, ClipboardIn, ClipboardOut, ClipboardOutList, SessionInfo
+from auth import hash_password, verify_password, create_access_token, get_current_user, get_user_from_token_ws, SECRET_KEY, ALGORITHM
+from crypto_utils import encrypt_clipboard, decrypt_clipboard, encrypt_token
 from connection_manager import ConnectionManager
 from utils import cleanup_expired_refresh_tokens
 from logging_config import logger
