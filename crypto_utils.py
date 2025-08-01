@@ -1,10 +1,10 @@
 from Crypto.Cipher import AES
 from Crypto.Util.Padding import pad, unpad
 import base64
-import os
+from config import Settings
 
 # Server-side secret key (store this securely in prod)
-SECRET_KEY = os.getenv("REFRESH_TOKEN_AES_KEY", "zyruxclipboardcrypt").encode('utf-8').ljust(32, b'\0')
+SECRET_KEY = Settings.REFRESH_TOKEN_AES_KEY
 
 def encrypt_clipboard(plaintext: str, key: bytes) -> (bytes, bytes):
     cipher = AES.new(key, AES.MODE_GCM)

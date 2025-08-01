@@ -17,18 +17,19 @@ from schemas import Token, UserRegisterWithDevice, UserLoginWithDevice, DeviceRe
 from auth import hash_password, verify_password, create_access_token, get_current_user, get_user_from_token_ws, SECRET_KEY, ALGORITHM
 from crypto_utils import encrypt_clipboard, decrypt_clipboard, encrypt_token
 from connection_manager import ConnectionManager
-from utils import cleanup_expired_refresh_tokens
+from utils import cleanup_expired_refresh_tokens, cleanup_old_clipboard_entries
 from logging_config import logger
+from config import Settings
 
-ALLOW_AUTO_DEVICE_REGISTRATION = True  #Turn this off in production!
+ALLOW_AUTO_DEVICE_REGISTRATION = Settings.ALLOW_AUTO_DEVICE_REGISTRATION  #Turn this off in production!
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
 # In-memory store: user_id -> list of WebSockets
 active_connections = defaultdict(list)
 
-ACCESS_TOKEN_EXPIRE_MINUTES = 15
-REFRESH_TOKEN_EXPIRE_DAYS = 30
+ACCESS_TOKEN_EXPIRE_MINUTES = Settings.ACCESS_TOKEN_EXPIRE_MINUTES
+REFRESH_TOKEN_EXPIRE_DAYS = Settings.REFRESH_TOKEN_EXPIRE_DAYS
 
 Base.metadata.create_all(bind=engine)
 app = FastAPI()
@@ -42,14 +43,6 @@ def get_db():
         yield db
     finally:
         db.close()
-
-def cleanup_old_clipboard_entries(user_id: int, db: Session):
-    one_week_ago = datetime.utcnow() - timedelta(days=7)
-    db.query(Clipboard).filter(
-        Clipboard.user_id == user_id,
-        Clipboard.timestamp < one_week_ago
-    ).delete()
-    db.commit()
 
 @app.on_event("startup")
 async def startup():
@@ -226,7 +219,6 @@ def sync_clipboard(
     db.commit()
 
     return {"status": "clipboard synced"}
-
 
 @app.get("/clipboard", response_model=ClipboardOut)
 def get_clipboard(

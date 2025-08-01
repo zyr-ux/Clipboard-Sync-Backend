@@ -7,11 +7,12 @@ from sqlalchemy.orm import Session
 from database import SessionLocal
 from models import User, BlacklistedToken, Device
 from utils import cleanup_expired_blacklisted_tokens
+from config import Settings
 
 # Secret key (change this in production!)
-SECRET_KEY = "zyruxlightsail"
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
+SECRET_KEY = Settings.SECRET_KEY
+ALGORITHM = Settings.ALGORITHM
+ACCESS_TOKEN_EXPIRE_MINUTES = Settings.ACCESS_TOKEN_EXPIRE_MINUTES
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
