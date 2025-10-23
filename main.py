@@ -48,7 +48,7 @@ def get_db():
 
 @app.on_event("startup")
 async def startup():
-    redis = Redis.from_url("redis://localhost", encoding="utf-8", decode_responses=True)
+    redis = Redis.from_url("redis://redis:6379", encoding="utf-8", decode_responses=True)
     await FastAPILimiter.init(redis)
 
 @app.exception_handler(Exception)
