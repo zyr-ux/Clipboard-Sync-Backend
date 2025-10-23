@@ -17,7 +17,7 @@ logs/
 *.log
 
 # SQLite database
-clipboard.db
+data/
 
 # Docker-related
 Dockerfile
