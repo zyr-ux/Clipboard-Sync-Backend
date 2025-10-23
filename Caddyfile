@@ -1,0 +1,11 @@
+synclo.zyrux.dev {
+    reverse_proxy backend:8000
+    log {
+        output file /data/caddy_access.log {
+            roll_size 5MB
+            roll_keep 5
+            roll_keep_for 48h
+        }
+    }
+}
+

@@ -1,0 +1,30 @@
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environment
+venv/
+.env
+
+# Git files
+.git/
+.gitignore
+
+# Logs
+logs/
+*.log
+
+# SQLite database
+clipboard.db
+
+# Docker-related
+Dockerfile
+docker-compose.yml
+
+# IDE files
+*.swp
+*.idea/
+*.vscode/
+

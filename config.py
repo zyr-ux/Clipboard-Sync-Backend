@@ -12,7 +12,7 @@ class Settings:
     REFRESH_TOKEN_AES_KEY = os.getenv("REFRESH_TOKEN_AES_KEY", "default-crypt-key").encode('utf-8').ljust(32, b'\0')
     REFRESH_TOKEN_EXPIRE_DAYS = int(os.getenv("REFRESH_TOKEN_EXPIRE_DAYS", 30))
     # DB
-    DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./clipboard.db")
+    DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./data/clipboard.db")
     # Features
     ALLOW_AUTO_DEVICE_REGISTRATION = os.getenv("ALLOW_AUTO_DEVICE_REGISTRATION", "true").lower() == "true"
 
